@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Param,
+  Req,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { CommunityService } from './community.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { JwtPayload } from '../auth/jwt-payload.type';
@@ -9,6 +18,10 @@ interface CreatePostBody {
   content: string;
   imageUrl?: string;
   metroArea?: string;
+}
+
+interface CreateCommentBody {
+  content: string;
 }
 
 @Controller('community')
@@ -37,5 +50,27 @@ export class CommunityController {
   @Get('posts')
   async getPosts() {
     return this.communityService.getPosts();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('posts/:postId/comments')
+  async createComment(
+    @Param('postId', ParseIntPipe) postId: number,
+    @Body() body: CreateCommentBody,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const user = req.user as JwtPayload;
+
+    return this.communityService.addComment({
+      postId,
+      authorId: user.sub,
+      content: body.content,
+    });
+  }
+
+  // 👇 Nuevo: listar comentarios
+  @Get('posts/:postId/comments')
+  async getComments(@Param('postId', ParseIntPipe) postId: number) {
+    return this.communityService.getComments(postId);
   }
 }
