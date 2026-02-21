@@ -20,6 +20,10 @@ export class UsersService {
     pronouns?: string;
     phone?: string;
   }) {
+    const vancouver = await this.prisma.metroArea.findUnique({
+      where: { slug: 'vancouver-bc' },
+    });
+
     return this.prisma.user.create({
       data: {
         name: data.name,
@@ -28,6 +32,7 @@ export class UsersService {
         role: data.role ?? Role.USER,
         pronouns: data.pronouns,
         phone: data.phone,
+        metroAreaId: vancouver?.id,
       },
     });
   }
