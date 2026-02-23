@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      # Las DBs auth_db y community_db se crean en las migraciones
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    env_file:
+      - ./services/auth-service/.env.docker
+    depends_on:
+      - postgres
+    ports:
+      - "3000:3000"
+
+  community-service:
+    build:
+      context: ./services/community-service
+      dockerfile: Dockerfile
+    container_name: community-service
+    env_file:
+      - ./services/community-service/.env.docker
+    depends_on:
+      - postgres
+    ports:
+      - "3001:3001"
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    env_file:
+      - ./services/api-gateway/.env.docker
+    depends_on:
+      - auth-service
+      - community-service
+    ports:
+      - "3002:3002"
+
+volumes:
+  postgres_data:
