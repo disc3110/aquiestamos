@@ -1,0 +1,7 @@
+*.env
+*.env.*
+postgres.env
+
+services/api-gateway/.env.docker
+services/auth-service/.env.docker
+services/community-service/.env.docker
